@@ -3,5 +3,8 @@ name = "webcam-rock-paper-scissor"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+requires-python = ">=3.8"
+dependencies = [
+    "mediapipe>=0.10.21",
+    "opencv-python>=4.11.0.86",
+]
