@@ -6,7 +6,7 @@ import time
 
 
 class HandTracker:
-    def __init__(self, model_asset_path="../data/hand_landmarker.task"):
+    def __init__(self, model_asset_path="../data/model/hand_landmarker.task"):
         """
         Initialize the MediaPipe Hand Landmarker.
 
