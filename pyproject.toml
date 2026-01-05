@@ -1,10 +1,20 @@
 [project]
 name = "webcam-rock-paper-scissor"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.0"
+description = "An interactive Rock-Paper-Scissors game using computer vision and hand tracking."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
+authors = [
+    { name = "Tenzin Tobatsang" }
+]
 dependencies = [
     "mediapipe>=0.10.21",
     "opencv-python>=4.11.0.86",
 ]
+
+[project.scripts]
+webcam-rps = "main:run_game"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
