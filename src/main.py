@@ -53,34 +53,38 @@ def run_game():
             # Get the first hand detected
             hand_landmarks = detection_result.hand_landmarks[0]
 
-            # MediaPipe coords are normalized (0-1). We need pixel values.
+            # Draw skeleton connections manually using our constants
             h, w, _ = frame.shape
-
-            # 1. Draw Connections (Lines)
-            # We draw lines first so they appear "under" the joints
             for start_idx, end_idx in game_utils.HAND_CONNECTIONS:
-                start_point = hand_landmarks[start_idx]
-                end_point = hand_landmarks[end_idx]
+                start_p = hand_landmarks[start_idx]
+                end_p = hand_landmarks[end_idx]
+                cv2.line(
+                    frame,
+                    (int(start_p.x * w), int(start_p.y * h)),
+                    (int(end_p.x * w), int(end_p.y * h)),
+                    (0, 255, 0),
+                    2,
+                )
 
-                # Convert normalized (0-1) to pixels
-                start_x, start_y = int(start_point.x * w), int(start_point.y * h)
-                end_x, end_y = int(end_point.x * w), int(end_point.y * h)
-
-                # Draw line: (Image, Start, End, Color (BGR), Thickness)
-                cv2.line(frame, (start_x, start_y), (end_x, end_y), (0, 255, 0), 2)
-
-            # 2. Draw Joints (Circles)
+            # Draw landmark points
             for landmark in hand_landmarks:
-                cx, cy = int(landmark.x * w), int(landmark.y * h)
-                # Draw circle: (Image, Center, Radius, Color (BGR), Thickness -1=Filled)
-                cv2.circle(frame, (cx, cy), 5, (0, 0, 255), -1)
+                cv2.circle(
+                    frame,
+                    (int(landmark.x * w), int(landmark.y * h)),
+                    5,
+                    (0, 0, 255),
+                    -1,
+                )
 
-        # 4. State Machine Logic
-        current_time = time.time()
+        # 4. Logic & State Machine
+        # Capture key input ONCE per frame to fix 'q' exit and 'space' detection issues
+        key = cv2.waitKey(1) & 0xFF
 
-        # --- STATE: WAITING ---
+        # Global Quit Handler (Press 'q' at any time)
+        if key == ord("q"):
+            break
+
         if current_state == "WAITING":
-            # Display instructions
             cv2.putText(
                 frame,
                 "Press SPACE to Start",
@@ -90,12 +94,9 @@ def run_game():
                 (255, 255, 255),
                 2,
             )
-
-            # Show current score
-            score_text = f"Player: {player_score} - CPU: {computer_score}"
             cv2.putText(
                 frame,
-                score_text,
+                f"Player: {player_score} - CPU: {computer_score}",
                 (50, 100),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
@@ -103,70 +104,57 @@ def run_game():
                 2,
             )
 
-            # Check for input to switch state
-            key = cv2.waitKey(1) & 0xFF
-            if key == 32:  # 32 is ASCII for Spacebar
+            # Start game on spacebar using the captured key variable
+            if key == ord(" "):
                 current_state = "COUNTDOWN"
-                start_time = current_time  # Reset timer
+                start_time = time.time()
 
-        # --- STATE: COUNTDOWN ---
         elif current_state == "COUNTDOWN":
-            elapsed_time = current_time - start_time
-            time_left = countdown_duration - elapsed_time
+            elapsed = time.time() - start_time
+            time_left = countdown_duration - elapsed
 
             if time_left > 0:
-                # Display the countdown number (3... 2... 1...)
-                # We add +1 and int() to show ceiling (e.g., 2.9s becomes "3")
-                count_text = str(int(time_left) + 1)
+                # Show countdown number
                 cv2.putText(
                     frame,
-                    count_text,
-                    (250, 250),
+                    str(int(time_left) + 1),
+                    (int(frame.shape[1] / 2) - 50, int(frame.shape[0] / 2)),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     5,
                     (0, 0, 255),
                     5,
                 )
             else:
-                # Timer finished! Transition to Capture immediately
-                # This is the "Capture" moment
-
-                # Default move if no hand detected
+                # Time is up! Capture current gesture and transition
                 current_gesture = "Unknown"
-
-                # If we have a hand, analyze it NOW
                 if detection_result and detection_result.hand_landmarks:
-                    # MediaPipe returns a list of hands, we only take the first one [0]
-                    first_hand_landmarks = detection_result.hand_landmarks[0]
-                    current_gesture = game_utils.recognize_gesture(first_hand_landmarks)
+                    current_gesture = game_utils.recognize_gesture(
+                        detection_result.hand_landmarks[0]
+                    )
 
-                # Logic Processing
                 final_player_move = current_gesture
                 final_computer_move = game_utils.get_computer_move()
 
+                # If no hand detected, result is invalid
                 if final_player_move == "Unknown":
                     game_result = "No Hand Detected!"
                 else:
                     game_result = game_utils.determine_winner(
                         final_player_move, final_computer_move
                     )
-
                     # Update Score
                     if game_result == "Player":
                         player_score += 1
                     elif game_result == "Computer":
                         computer_score += 1
 
-                # Switch State
                 current_state = "RESULT"
-                start_time = current_time  # Reset timer for result display
+                start_time = time.time()
 
-        # --- STATE: RESULT ---
         elif current_state == "RESULT":
-            elapsed_time = current_time - start_time
-
-            if elapsed_time < result_display_duration:
-                # Show who chose what
+            elapsed = time.time() - start_time
+            if elapsed < result_display_duration:
+                # Show choices
                 cv2.putText(
                     frame,
                     f"You: {final_player_move}",
@@ -209,10 +197,6 @@ def run_game():
 
         # 5. Render
         cv2.imshow("Rock Paper Scissors", frame)
-
-        # Global Quit Handler (Press 'q' at any time)
-        if cv2.waitKey(5) & 0xFF == ord("q"):
-            break
 
     # Cleanup
     cap.release()

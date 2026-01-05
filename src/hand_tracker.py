@@ -6,7 +6,7 @@ import time
 
 
 class HandTracker:
-    def __init__(self, model_asset_path="../data/model/hand_landmarker.task"):
+    def __init__(self, model_asset_path="data/model/hand_landmarker.task"):
         """
         Initialize the MediaPipe Hand Landmarker.
 
@@ -53,9 +53,12 @@ class HandTracker:
             current_timestamp_ms = self.last_timestamp_ms + 1
         self.last_timestamp_ms = current_timestamp_ms
 
-        # Perform hand detection on the frame
-        detection_result = self.landmarker.detect_for_video(
-            mp_image, current_timestamp_ms
-        )
-
-        return detection_result
+        # Perform hand detection on the frame inside a try block to handle runtime errors
+        try:
+            detection_result = self.landmarker.detect_for_video(
+                mp_image, current_timestamp_ms
+            )
+            return detection_result
+        except Exception as e:
+            print(f"Error during hand detection: {e}")
+            return None
