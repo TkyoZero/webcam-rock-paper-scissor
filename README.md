@@ -10,44 +10,69 @@ This program allows you to play the classic game against the computer without us
 * **Control:** Your hand movements are analyzed live.
 * **Logic:** A State Machine controls the game flow (Waiting -> Countdown -> Result).
 
-## Installation & Setup
+## Project Management with `uv`
 
-### 1. Prerequisites
+This project is managed using [uv](https://github.com/astral-sh/uv "null"), an extremely fast Python package manager and workflow tool.
 
-You need Python (version 3.8 or higher) and a functioning webcam.
+### Why `uv`?
 
-### 2. Install Dependencies
+* **Init** : Standardized project structure defined in `pyproject.toml`.
+* **Env** : Automatic management of virtual environments (`.venv`) ensuring project isolation.
+* **Lock** : A `uv.lock` file is used to ensure reproducible builds across different machines by pinning exact dependency versions.
 
-Install the required Python libraries via the terminal:
+## Prerequisites
+
+* **uv** : Ensure you have `uv` installed. If not, install it via:
 
 ```
-pip install opencv-python mediapipe
+  curl -LsSf https://astral-sh/uv/install.sh | sh
 ```
 
-### 3. Download the AI Model
+* **Hardware** : Integrated or external USB webcam.
+* **Model File** : Ensure `hand_landmarker.task` is located at `../data/model/` (or as configured in your code).
 
-The project requires a specific MediaPipe model file to detect hands.
+## Setup & Installation
 
-1. Create the subfolders in your project directory: `data/model/`
-2. Download the file `hand_landmarker.task` (from the official Google MediaPipe website).
-3. Save it as: `data/model/hand_landmarker.task`
+1. **Clone the repository** :
 
-*Note: The file path in the code (`hand_tracker.py`) is set to this location by default.*
+```
+   git clone <your-repository-url>
+   cd webcam-rock-paper-scissor
+```
+
+1. **Synchronize the environment** :
+   Run the following command to create a virtual environment and install all dependencies exactly as defined in the lockfile:
+
+```
+   uv sync
+```
 
 ## How to Play
 
-1. Start the program:
-   ```
-   python src/main.py
-   ```
-2. Hold your hand in front of the camera until you see the green skeleton overlay on your hand.
-3. Press the **SPACE BAR** to start the game.
-4. A countdown begins: **3... 2... 1...**
-5. At "1", show your gesture (Rock, Paper, or Scissors).
-6. The result and the winner are displayed immediately.
-7. Press **'q'** to quit the program.
+1. **Launch the game** :
+   Use `uv run` to execute the script within the managed environment:
 
-## Project Structure
+```
+   uv run python main.py
+```
+
+   Or use the convenience script defined in `pyproject.toml`:
+
+```
+   uv run webcam-rps
+```
+
+1. **Controls** :
+
+* **SPACE** : Start a new round.
+* **'q'** : Quit the application.
+
+1. **Gameplay** :
+
+* Press **SPACE** to start a 3-second countdown.
+* Position your hand in view.
+* Show your gesture (Rock, Paper, or Scissors).
+* The computer randomly selects its move and the winner is displayed.
 
 * **`main.py`**
   The entry point. This file handles the "Game Loop", draws the window, counts the score, and processes user input (keyboard).
