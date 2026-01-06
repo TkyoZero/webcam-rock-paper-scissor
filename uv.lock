@@ -843,7 +843,7 @@ wheels = [
 [[package]]
 name = "webcam-rock-paper-scissor"
 version = "1.0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "mediapipe" },
     { name = "opencv-python" },
